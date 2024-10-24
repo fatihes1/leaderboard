@@ -9,8 +9,50 @@ services:
     volumes:
       - ./client:/app
       - /app/node_modules
+    depends_on:
+      - backend
     networks:
       - app-network
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      MONGO_URL: mongodb://mongo:27017/leaderboard
+      REDIS_URL: redis://redis:6379
+
+
+  redis:
+    image: redis:latest
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+volumes:
+  redis-data:
+  mongo-data:
 
 networks:
   app-network:

@@ -24,11 +24,12 @@ services:
       - ./server:/app
       - /app/node_modules
     depends_on:
-      - mongodb
+      - postgres
       - redis
     environment:
-      MONGO_URL: mongodb://mongo:27017/leaderboard
       REDIS_URL: redis://redis:6379
+    networks:
+      - app-network
 
 
   redis:
@@ -41,18 +42,23 @@ services:
     networks:
       - app-network
 
-  mongodb:
-    image: mongo:latest
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: fatichdev
+      POSTGRES_PASSWORD: fatih1234
+      POSTGRES_DB: leaderboard
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
     ports:
-      - "27017:27017"
+      - "5432:5432"
     networks:
       - app-network
 
 volumes:
   redis-data:
-  mongo-data:
+  postgres-data:
 
 networks:
   app-network:

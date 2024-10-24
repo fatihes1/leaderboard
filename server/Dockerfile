@@ -12,4 +12,6 @@ COPY . .
 
 EXPOSE 8000
 
+RUN npx prisma generate
+
 CMD ["npm", "run", "dev"]

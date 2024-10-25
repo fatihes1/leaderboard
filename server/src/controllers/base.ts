@@ -1,29 +1,12 @@
-import PlayerService from "../services/player-service";
-import {RequestHandler, Request, Response} from "express";
-import HttpStatus from "http-status";
-import { Prisma } from '@prisma/client'
 
-class PlayerController {
-    private playerService: PlayerService
+import { Response } from 'express';
+import HttpStatus from 'http-status';
+import { Prisma } from '@prisma/client';
 
-    constructor() {
-        this.playerService = new PlayerService();
-    }
-
-  index: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-      try {
-          const players = await this.playerService.list();
-          res.status(HttpStatus.OK).send(players);
-      } catch (error: any) {
-          this.handleError(res, error);
-      }
-  }
-
-    private handleError(res: Response, error: any): void {
-        console.error('Error:', error);
+class BaseController {
+    protected handleError(res: Response, error: any): void {
 
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            // Prisma özel hata kodlarını işle
             switch (error.code) {
                 case 'P2002':
                     res.status(HttpStatus.CONFLICT).send({
@@ -52,4 +35,5 @@ class PlayerController {
         }
     }
 }
-export default PlayerController;
+
+export default BaseController;

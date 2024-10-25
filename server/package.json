@@ -21,12 +21,15 @@
     "joi": "^17.13.3",
     "logger": "^0.0.1",
     "nodemon": "^3.1.7",
+    "redis": "^4.7.0",
     "socket.io": "^4.8.0",
-    "winston": "^3.15.0"
+    "winston": "^3.15.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.9",
+    "@types/redis": "^4.0.11",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
     "@typescript-eslint/parser": "^8.11.0",
     "prisma": "^5.21.1",

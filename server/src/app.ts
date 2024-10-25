@@ -1,7 +1,8 @@
 import express, { Express, Request, Response } from 'express';
-import {server, connectDB, prisma} from "./config";
+import {server, connectDB, prisma, connectRedis} from "./config";
 import helmet from "helmet";
-import PlayerRoutes from "./routes/player-routes";
+import PlayerRoutes from "./routes/player";
+import LeaderboardRoutes from "./routes/leaderboard";
 
 const port = process.env.PORT || 8000;
 
@@ -18,7 +19,9 @@ app.get('/', (req: Request, res: Response) => {
 
 app.listen(port, async () => {
     await connectDB();
-    app.use('/leaderboard', PlayerRoutes);
+    await connectRedis();
+    app.use('/leaderboard', LeaderboardRoutes);
+    app.use('/player', PlayerRoutes);
     console.log(`⚡️ Server is running at PORT:${port}`);
 });
 

@@ -1,9 +1,10 @@
-import {Navbar} from "../components/ui/navbar.tsx";
+import TableExample from "../components/ui/example.tsx";
+import {LeaderboardProvider} from "../providers/leaderboard/leaderboard-provider.tsx";
 
-export const Leaderboard = () => {
+export const LeaderboardPage = () => {
     return (
-        <div>
-            <Navbar />
-        </div>
+        <LeaderboardProvider>
+                <TableExample />
+        </LeaderboardProvider>
     )
 }

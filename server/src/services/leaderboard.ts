@@ -4,7 +4,7 @@ import PlayerService from "./player";
 import {z} from 'zod'
 
 interface PlayerScore {
-    playerId: number;
+    id: number;
     name: string;
     country: string;
     money: string;
@@ -229,7 +229,7 @@ class LeaderboardService extends BaseService<'leaderboard'> {
             const rank = playerRanks.get(playerId);
 
             return {
-                playerId,
+                id: playerId,
                 name: player?.name ?? 'Unknown',
                 country: player?.country ?? 'Unknown',
                 money: score.toString(),

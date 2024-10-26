@@ -3,6 +3,7 @@ import {server, connectDB, prisma, connectRedis} from "./config";
 import helmet from "helmet";
 import PlayerRoutes from "./routes/player";
 import LeaderboardRoutes from "./routes/leaderboard";
+import cors from "cors";
 
 const port = process.env.PORT || 8000;
 
@@ -11,6 +12,7 @@ server();
 
 const app: Express = express();
 app.use(express.json());
+app.use(cors());
 app.use(helmet());
 
 app.get('/', (req: Request, res: Response) => {

@@ -1,3 +1,34 @@
-@tailwind base;
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');@tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer components {
+    .font-press-start {
+        font-family: "Press Start 2P", system-ui;
+        font-weight: 400;
+        font-style: normal;
+    }
+}
+
+@layer components {
+    .scroll-area {
+        @apply overflow-y-scroll; /* Scroll'u aktif hale getir */
+        scrollbar-width: thin; /* Firefox için ince kaydırma çubuğu */
+        scrollbar-color: #251e40 transparent; /* Firefox için mor kaydırma çubuğu */
+    }
+
+    .scroll-area::-webkit-scrollbar {
+        padding-top: 16px;
+        width: 8px; /* Kaydırma çubuğunun genişliği */
+    }
+
+    .scroll-area::-webkit-scrollbar-thumb {
+        background-color: #251e40; /* Kaydırma çubuğunun rengi */
+        border-radius: 10px; /* Çubuğun köşelerini yuvarla */
+    }
+
+    .scroll-area::-webkit-scrollbar-track {
+        background: transparent; /* Kaydırma alanı görünmez */
+    }
+}

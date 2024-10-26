@@ -27,7 +27,7 @@ export const  Navbar = () => {
     };
 
     return (
-        <nav className="fixed top-0 left-0 w-full bg-white  dark:bg-nav-color dark:invert-0 shadow-md">
+        <nav className="fixed top-0 left-0 w-full bg-white  dark:bg-nav-color dark:invert-0 shadow-md z-50">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex-1"></div>
 

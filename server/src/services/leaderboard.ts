@@ -200,13 +200,15 @@ class LeaderboardService extends BaseService<'leaderboard'> {
                 },
             );
 
+            const playerRanks = await this.getPlayerRanksFromRedis(Array.from(allPlayerIds));
+
             // 5. Oyuncu bilgilerini formatlayarak döndür
             return {
-                topPlayers: this.formatPlayers(topPlayersWithScores, players),
+                topPlayers: this.formatPlayers(topPlayersWithScores, players, playerRanks),
                 // Eğer oyuncu ilk 100'deyse boş array dön, değilse surrounding'i dön
                 surroundingPlayers: playerRank !== null && playerRank < this.TOP_PLAYERS_COUNT
                     ? []
-                    : this.formatPlayers(surroundingPlayersWithScores, players),
+                    : this.formatPlayers(surroundingPlayersWithScores, players, playerRanks),
                 playerRank: playerRank !== null ? playerRank + 1 : null,
             };
         } catch (error) {
@@ -218,19 +220,37 @@ class LeaderboardService extends BaseService<'leaderboard'> {
 
     private formatPlayers(
         redisData: Array<{ score: number; value: string }>,
-        players: Player[]
+        players: Player[],
+        playerRanks: Map<number, number>
     ): PlayerScore[] {
         return redisData.map(({ score, value }) => {
             const playerId = parseInt(value);
             const player = players.find(p => p.id === playerId);
+            const rank = playerRanks.get(playerId);
 
             return {
                 playerId,
                 name: player?.name ?? 'Unknown',
                 country: player?.country ?? 'Unknown',
                 money: score.toString(),
+                rank: rank ?? null  // Sıralama bilgisini ekle
             };
         });
+    }
+
+    private async getPlayerRanksFromRedis(playerIds: number[]): Promise<Map<number, number>> {
+        const totalPlayers = await redisClient.zCard(this.LEADERBOARD_KEY);
+        const rankMap = new Map<number, number>();
+
+        for (const playerId of playerIds) {
+            const rank = await redisClient.zRank(this.LEADERBOARD_KEY, playerId.toString());
+            if (rank !== null) {
+                // Redis sıralaması 0'dan başladığı için tersten hesapla ve 1'den başlat
+                rankMap.set(playerId, totalPlayers - rank);
+            }
+        }
+
+        return rankMap;
     }
 }
 

@@ -10,8 +10,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  //url      = env("DATABASE_URL")
-  url      = "postgresql://fatichdev:fatih1234@postgres_db:5432/leaderboard?schema=public"
+  url      = env("DATABASE_URL")
+  //url      = "postgresql://fatichdev:fatih1234@postgres_db:5432/leaderboard?schema=public"
 }
 
 model Player {

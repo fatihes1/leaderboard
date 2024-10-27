@@ -2,25 +2,32 @@
 import { Response } from 'express';
 import HttpStatus from 'http-status';
 import { Prisma } from '@prisma/client';
+import {
+    P2002_ERROR,
+    P2002_ERROR_MESSAGE,
+    P2014_ERROR, P2014_ERROR_MESSAGE,
+    P2025_ERROR,
+    P2025_ERROR_MESSAGE
+} from "../constant/prisma-constants";
 
 class BaseController {
     protected handleError(res: Response, error: any): void {
 
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             switch (error.code) {
-                case 'P2002':
+                case P2002_ERROR:
                     res.status(HttpStatus.CONFLICT).send({
-                        message: 'Unique constraint violation'
+                        message: P2002_ERROR_MESSAGE
                     });
                     break;
-                case 'P2025':
+                case P2025_ERROR:
                     res.status(HttpStatus.NOT_FOUND).send({
-                        message: 'Record not found'
+                        message: P2025_ERROR_MESSAGE
                     });
                     break;
-                case 'P2014':
+                case P2014_ERROR:
                     res.status(HttpStatus.BAD_REQUEST).send({
-                        message: 'Invalid ID'
+                        message: P2014_ERROR_MESSAGE
                     });
                     break;
                 default:

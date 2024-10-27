@@ -22,7 +22,7 @@ export type TableColumn<T> = ColumnDef<T> & {
 export interface BaseTableProps<T> {
     data: T[];
     columns: TableColumn<T>[];
-    rowColorCode?: string;
+    rowColorClass?: string;
     initialColumnOrder?: string[];
     onOrderChange?: (newOrder: string[]) => void;
     className?: string;
@@ -33,10 +33,10 @@ export interface BaseTableProps<T> {
     rowClassName?: string;
     headerClassName?: string;
     cellClassName?: string;
-    tableBgColor?: string;
+    maxTableHeightClass?: string;
 }
 
-function ReusableTable<T extends { id: number | string }>({
+function BaseTable<T extends { id: number | string }>({
                                                               data,
                                                               columns,
                                                               initialColumnOrder,
@@ -49,8 +49,8 @@ function ReusableTable<T extends { id: number | string }>({
                                                               rowClassName = 'bg-[#2a2b3e] mb-2 rounded-lg hover:bg-[#3a3b4e] transition-colors',
                                                               headerClassName = 'text-left p-4 text-gray-400 font-normal',
                                                               cellClassName = 'p-4 text-white',
-                                                              tableBgColor = 'bg-[#1a1b2e]',
-                                                              rowColorCode = '#251e40',
+                                                              rowColorClass = 'bg-white dark:bg-[#1c172b]',
+                                                              maxTableHeightClass = 'max-h-[58vh]'
                                                           }: BaseTableProps<T>): ReactElement {
     const defaultColumnOrder = initialColumnOrder || columns.map(col => col.id);
     const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(defaultColumnOrder);
@@ -101,27 +101,31 @@ function ReusableTable<T extends { id: number | string }>({
     };
 
     const tableContent = (
-        <div className={`w-full h-1/3 z-50 ${tableBgColor} p-8 rounded-lg mt-10 ${className}`}>
+        <div className={`w-full h-1/3 z-50 p-8 rounded-lg ${className}`}>
             <div className="h-full relative">
                 {/* Table wrapper */}
-                <div className="max-h-[55vh] scroll-area overflow-x-auto">
+                <div className={`${maxTableHeightClass} scroll-area overflow-x-auto`}>
                     <table className={`w-full border-separate border-spacing-y-2 min-w-[${minTableWidth}]`}>
                         {/* Sticky Header */}
-                        <thead className="sticky top-0 z-10 bg-inherit">
+                        <thead className="sticky top-0 z-10">
                         <tr>
                             {table.getHeaderGroups().map(headerGroup => (
                                 <React.Fragment key={headerGroup.id}>
                                     {headerGroup.headers.map((header, headerIndex) => (
                                         <th
                                             key={header.id}
-                                            className={`${headerClassName} ${enableDragAndDrop ? 'cursor-move' : ''}`}
+                                            className={`border-y border-gray-300 dark:border-purple-600 
+                                            ${headerIndex === 0 ? 'rounded-l-lg border-l border-gray-300 dark:border-purple-600' : ''} 
+                                            ${headerIndex === headerGroup.headers.length - 1 ? 'border-r border-gray-300 dark:border-purple-600 mr-2 rounded-r-lg' : ''}
+                                            ${headerClassName} 
+                                            ${enableDragAndDrop ? 'cursor-move' : ''}`}
                                             onClick={enableSorting ? header.column.getToggleSortingHandler() : undefined}
                                             style={{
                                                 paddingLeft: headerIndex === 0 ? '2rem' : '',
                                             }}
                                         >
                                             <div
-                                                className={`flex items-center gap-2 ${enableDragAndDrop ? 'draggable-column hover:cursor-move' : ''}`}
+                                                className={`flex text-sm md:text-base items-center gap-2 ${enableDragAndDrop ? 'draggable-column hover:cursor-move' : ''}`}
                                                 draggable={enableDragAndDrop}
                                                 onDragStart={enableDragAndDrop ? (e) => handleDragStart(e, header.id) : undefined}
                                                 onDragOver={enableDragAndDrop ? handleDragOver : undefined}
@@ -153,17 +157,18 @@ function ReusableTable<T extends { id: number | string }>({
                         {/* Scrollable Body */}
                         <tbody>
                         {table.getRowModel().rows.map(row => (
-                            <tr key={row.id} className={rowClassName}>
+                            <tr key={row.id} className={rowClassName} data-row-id={row.original.id}>
                                 {row.getVisibleCells().map((cell, cellIndex) => (
                                     <td key={cell.id} className={cellClassName} style={{padding: 0}}>
                                         <div
-                                            style={{
-                                                borderRadius: cellIndex === 0 ? '2rem 0 0 1rem' : cellIndex === row.getVisibleCells().length - 1 ? '0 1rem 2rem 0' : '0',
-                                                paddingLeft: cellIndex === 0 ? '3rem' : '',
-                                                padding: '1rem',
-                                                backgroundColor: rowColorCode,
-                                            }}
-                                            className="text-sm"
+                                            className={`
+                                            text-sm md:text-base
+                                            text-black dark:text-white
+                                            border-y border-gray-300 dark:border-purple-900
+                                            p-4
+                                            ${cellIndex === 0 ? 'pl-12 rounded-tl-[2rem] rounded-bl-[1rem]' : ''}
+                                            ${cellIndex === row.getVisibleCells().length - 1 ? 'rounded-br-[2rem] rounded-tr-[1rem]' : ''}
+                                            ${rowColorClass}`}
                                         >
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </div>
@@ -185,4 +190,4 @@ function ReusableTable<T extends { id: number | string }>({
     ) : tableContent;
 }
 
-export default ReusableTable;
+export default BaseTable;

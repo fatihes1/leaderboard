@@ -18,3 +18,11 @@ export interface IPlayerOption {
     name: string;
     country: ICountry;
 }
+
+export interface IGroupedPlayers {
+    country: {
+        name: string;
+        flag: string;
+    };
+    players: IPlayer[];
+}

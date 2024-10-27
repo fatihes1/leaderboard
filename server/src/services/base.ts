@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 class BaseService<T extends string> {
-    private prisma: PrismaClient
+    protected prisma: PrismaClient
     private model: T
 
     constructor(model: T) {

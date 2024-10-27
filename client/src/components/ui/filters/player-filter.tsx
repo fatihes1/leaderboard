@@ -27,7 +27,7 @@ export const PlayerFilter = () => {
                 </div>
 
                 {(query || isLoading || players.length > 0) && (
-                    <Combobox.Options className="absolute mt-2 max-h-60 w-2/3 md:w-full overflow-auto rounded-lg bg-white dark:bg-[#1C1B1F] py-2 shadow-xl ring-1 ring-white/10 z-50">
+                    <Combobox.Options className="absolute mt-2 max-h-60 w-2/3 md:w-9/12 overflow-auto rounded-lg bg-white dark:bg-[#1C1B1F] py-2 shadow-xl ring-1 ring-white/10 z-50">
                         {isLoading && (
                             <div className="px-4 py-2 text-sm text-black/50 dark:text-white">Loading...</div>
                         )}

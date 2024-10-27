@@ -2,6 +2,7 @@ import BaseService from "./base";
 import {prisma, redisClient} from "../config";
 import PlayerService from "./player";
 import {z} from 'zod'
+import {TOP_PLAYERS_REWARD_PERCENTAGES} from "../constant/leaderboard-constants";
 
 interface PlayerScore {
     id: number;
@@ -43,6 +44,7 @@ class LeaderboardService extends BaseService<'leaderboard'> {
 
 
     private playerService: PlayerService
+
     constructor() {
         super('leaderboard')
         this.playerService = new PlayerService()
@@ -104,7 +106,6 @@ class LeaderboardService extends BaseService<'leaderboard'> {
     }
 
     async getPlayerOptions(playerName: string): Promise<PlayerOptionResponse> {
-        // 1. Kullanıcı ismine göre benzer sonuçlar getir
         const similarPlayers = await this.playerService.list(
             {
                 name: {
@@ -142,9 +143,6 @@ class LeaderboardService extends BaseService<'leaderboard'> {
             let surroundingPlayersWithScores: Array<{ score: number; value: string }> = [];
             let playerRank: number | null = null;
 
-            // 2. Eğer oyuncu adı verildiyse sıralamasını bul
-            // TODO: handle player name exist scenario
-
             if (playerId) {
                 const player = await this.playerService.findOne(
                     { id: playerId },
@@ -156,10 +154,8 @@ class LeaderboardService extends BaseService<'leaderboard'> {
                     playerRank = await redisClient.zRank(this.LEADERBOARD_KEY, playerId);
                     console.log('Player rank:', playerRank);
                     if (playerRank !== null) {
-                        // Redis'te sıralama 0'dan başladığı için tersten alıyoruz
                         playerRank = await redisClient.zCard(this.LEADERBOARD_KEY) - playerRank - 1;
 
-                        // Eğer oyuncu ilk 100'de değilse, çevresindeki oyuncuları getir
                         if (playerRank >= this.TOP_PLAYERS_COUNT) {
                             const start = Math.max(
                                 0,
@@ -187,7 +183,6 @@ class LeaderboardService extends BaseService<'leaderboard'> {
                 ...surroundingPlayersWithScores.map(p => parseInt(p.value)),
             ]);
 
-            // 4. Prisma ile oyuncu bilgilerini çek
             const players = await this.playerService.list({
                     id: {
                         in: Array.from(allPlayerIds),
@@ -202,10 +197,8 @@ class LeaderboardService extends BaseService<'leaderboard'> {
 
             const playerRanks = await this.getPlayerRanksFromRedis(Array.from(allPlayerIds));
 
-            // 5. Oyuncu bilgilerini formatlayarak döndür
             return {
                 topPlayers: this.formatPlayers(topPlayersWithScores, players, playerRanks),
-                // Eğer oyuncu ilk 100'deyse boş array dön, değilse surrounding'i dön
                 surroundingPlayers: playerRank !== null && playerRank < this.TOP_PLAYERS_COUNT
                     ? []
                     : this.formatPlayers(surroundingPlayersWithScores, players, playerRanks),
@@ -245,12 +238,48 @@ class LeaderboardService extends BaseService<'leaderboard'> {
         for (const playerId of playerIds) {
             const rank = await redisClient.zRank(this.LEADERBOARD_KEY, playerId.toString());
             if (rank !== null) {
-                // Redis sıralaması 0'dan başladığı için tersten hesapla ve 1'den başlat
                 rankMap.set(playerId, totalPlayers - rank);
             }
         }
 
         return rankMap;
+    }
+
+    async distributeWeeklyRewards(): Promise<void> {
+        const rewardPool = parseFloat(await redisClient.get('reward_pool') || '0');
+
+        const topPlayers = await redisClient.zRangeWithScores(
+            this.LEADERBOARD_KEY,
+            0,
+            this.TOP_PLAYERS_COUNT - 1,
+            { REV: true }
+        );
+
+
+        for (let i = 0; i < topPlayers.length; i += 2) {
+            const playerId = Number(topPlayers[i]);
+            const playerRank = i / 2 + 1;
+
+            let rewardAmount;
+            if (playerRank === 1) {
+                rewardAmount = rewardPool * TOP_PLAYERS_REWARD_PERCENTAGES[0].percentage;
+            } else if (playerRank === 2) {
+                rewardAmount = rewardPool * TOP_PLAYERS_REWARD_PERCENTAGES[1].percentage;
+            } else if (playerRank === 3) {
+                rewardAmount = rewardPool * TOP_PLAYERS_REWARD_PERCENTAGES[2].percentage;
+            } else if (playerRank <= 100) {
+                rewardAmount = rewardPool * ((100 - playerRank) / 5046);
+            }
+
+            await this.prisma.player.update({
+                where: { id: playerId },
+                data: { money: rewardAmount },
+            });
+        }
+
+        await redisClient.del('reward_pool');
+        await redisClient.del('leaderboard');
+        console.log('Weekly rewards distributed and leaderboard reset.');
     }
 }
 

@@ -1,4 +1,4 @@
-import {Navbar} from "./components/ui/navbar.tsx";
+import {Navbar} from "@/components/ui/navbar.tsx";
 import {BaseRoutes} from "./routes/base.tsx";
 
 

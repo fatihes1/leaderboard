@@ -12,3 +12,9 @@ export interface ICountry {
     name: string;
     flag: string;
 }
+
+export interface IPlayerOption {
+    id: number;
+    name: string;
+    country: ICountry;
+}

@@ -164,7 +164,6 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
         ], []);
 
     const toggleGroupView = () => {
-        console.log('toggle')
         setIsGroupView((prev) => !prev);
     }
 
@@ -175,7 +174,6 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
             if (surroundingPlayers.length > 0) {
                 top100Players.push(...surroundingPlayers);
             }
-            console.log(top100Players)
             setData(top100Players)
 
         }).catch((error) => {

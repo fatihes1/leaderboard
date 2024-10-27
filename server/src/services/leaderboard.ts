@@ -2,7 +2,14 @@ import BaseService from "./base";
 import {prisma, redisClient} from "../config";
 import PlayerService from "./player";
 import {z} from 'zod'
-import {TOP_PLAYERS_REWARD_PERCENTAGES} from "../constant/leaderboard-constants";
+import {leaderboardLogger} from "../utils/logger/leaderboard-logger";
+
+import {
+    LEADERBOARD_CACHE_TTL,
+    LEADERBOARD_KEY, REWARD_POOL_KEY, SURROUNDING_PLAYERS_COUNT_ABOVE, SURROUNDING_PLAYERS_COUNT_BELOW,
+    TOP_PLAYERS_COUNT,
+    TOP_PLAYERS_REWARD_PERCENTAGES
+} from "../constant/leaderboard-constants";
 
 interface PlayerScore {
     id: number;
@@ -36,11 +43,6 @@ const playerSchema = z.object({
 type Player = z.infer<typeof playerSchema>;
 
 class LeaderboardService extends BaseService<'leaderboard'> {
-    private readonly LEADERBOARD_KEY = 'leaderboard';
-    private readonly TOP_PLAYERS_COUNT = 100;
-    private readonly SURROUNDING_PLAYERS_COUNT_ABOVE = 3;
-    private readonly SURROUNDING_PLAYERS_COUNT_BELLOW = 2;
-    private readonly REDIS_EXPIRE_TIME = 60 * 60; // 1 saat
 
 
     private playerService: PlayerService
@@ -52,11 +54,9 @@ class LeaderboardService extends BaseService<'leaderboard'> {
 
     async ensureLeaderboardData(): Promise<void> {
         try {
-            // Redis'te veri var mı kontrol et
-            const leaderboardExists = await redisClient.exists(this.LEADERBOARD_KEY);
+            const leaderboardExists = await redisClient.exists(LEADERBOARD_KEY);
 
             if (!leaderboardExists) {
-                // Prisma'dan tüm oyuncuları money değerine göre sıralı şekilde çek
                 const players = await prisma.player.findMany({
                     select: {
                         id: true,
@@ -68,26 +68,23 @@ class LeaderboardService extends BaseService<'leaderboard'> {
                 });
 
                 if (players.length === 0) {
-                    return; // Hiç oyuncu yoksa işlemi sonlandır
+                    return;
                 }
 
-                // Redis pipeline kullanarak bulk insert yap
                 const pipeline = redisClient.multi();
 
                 players.forEach(player => {
-                    pipeline.zAdd(this.LEADERBOARD_KEY, {
+                    pipeline.zAdd(LEADERBOARD_KEY, {
                         score: player.money,
                         value: player.id.toString()
                     });
                 });
 
-                // Expire time ekle
-                pipeline.expire(this.LEADERBOARD_KEY, this.REDIS_EXPIRE_TIME);
+                pipeline.expire(LEADERBOARD_KEY, LEADERBOARD_CACHE_TTL);
 
-                // Pipeline'ı çalıştır
                 await pipeline.exec();
 
-                console.log(`Leaderboard initialized with ${players.length} players`);
+                leaderboardLogger.info(`Leaderboard initialized with ${players.length} players`);
             }
         } catch (error) {
             console.error('Error initializing leaderboard:', error);
@@ -95,7 +92,7 @@ class LeaderboardService extends BaseService<'leaderboard'> {
         }
     }
 
-    //@Override
+
     async getPlayerList(playerName?: string, playerId?: number): Promise<LeaderboardResponse | PlayerOptionResponse> {
         if (playerName) {
             return await this.getPlayerOptions(playerName);
@@ -109,8 +106,8 @@ class LeaderboardService extends BaseService<'leaderboard'> {
         const similarPlayers = await this.playerService.list(
             {
                 name: {
-                    contains: playerName, // contains ile benzer kullanıcı adlarını ara
-                    mode: 'insensitive',  // Büyük küçük harf duyarlılığı olmadan arama yapar
+                    contains: playerName,
+                    mode: 'insensitive',
                 },
             },
             {
@@ -134,9 +131,9 @@ class LeaderboardService extends BaseService<'leaderboard'> {
             await this.ensureLeaderboardData();
 
             const topPlayersWithScores = await redisClient.zRangeWithScores(
-                this.LEADERBOARD_KEY,
+                LEADERBOARD_KEY,
                 0,
-                this.TOP_PLAYERS_COUNT - 1,
+                TOP_PLAYERS_COUNT - 1,
                 { REV: true }
             );
 
@@ -151,23 +148,23 @@ class LeaderboardService extends BaseService<'leaderboard'> {
 
                 if (player) {
                     const playerId = player.id.toString();
-                    playerRank = await redisClient.zRank(this.LEADERBOARD_KEY, playerId);
-                    console.log('Player rank:', playerRank);
-                    if (playerRank !== null) {
-                        playerRank = await redisClient.zCard(this.LEADERBOARD_KEY) - playerRank - 1;
+                    playerRank = await redisClient.zRank(LEADERBOARD_KEY, playerId);
 
-                        if (playerRank >= this.TOP_PLAYERS_COUNT) {
+                    if (playerRank !== null) {
+                        playerRank = await redisClient.zCard(LEADERBOARD_KEY) - playerRank - 1;
+
+                        if (playerRank >= TOP_PLAYERS_COUNT) {
                             const start = Math.max(
                                 0,
-                                playerRank - this.SURROUNDING_PLAYERS_COUNT_ABOVE
+                                playerRank - SURROUNDING_PLAYERS_COUNT_ABOVE
                             );
                             const end = Math.min(
-                                await redisClient.zCard(this.LEADERBOARD_KEY) - 1,
-                                playerRank + this.SURROUNDING_PLAYERS_COUNT_BELLOW
+                                await redisClient.zCard(LEADERBOARD_KEY) - 1,
+                                playerRank + SURROUNDING_PLAYERS_COUNT_BELOW
                             );
 
                             surroundingPlayersWithScores = await redisClient.zRangeWithScores(
-                                this.LEADERBOARD_KEY,
+                                LEADERBOARD_KEY,
                                 start,
                                 end,
                                 { REV: true }
@@ -177,7 +174,7 @@ class LeaderboardService extends BaseService<'leaderboard'> {
                 }
             }
 
-            // 3. Tüm player ID'leri topla
+
             const allPlayerIds = new Set([
                 ...topPlayersWithScores.map(p => parseInt(p.value)),
                 ...surroundingPlayersWithScores.map(p => parseInt(p.value)),
@@ -199,7 +196,7 @@ class LeaderboardService extends BaseService<'leaderboard'> {
 
             return {
                 topPlayers: this.formatPlayers(topPlayersWithScores, players, playerRanks),
-                surroundingPlayers: playerRank !== null && playerRank < this.TOP_PLAYERS_COUNT
+                surroundingPlayers: playerRank !== null && playerRank < TOP_PLAYERS_COUNT
                     ? []
                     : this.formatPlayers(surroundingPlayersWithScores, players, playerRanks),
                 playerRank: playerRank !== null ? playerRank + 1 : null,
@@ -226,17 +223,17 @@ class LeaderboardService extends BaseService<'leaderboard'> {
                 name: player?.name ?? 'Unknown',
                 country: player?.country ?? 'Unknown',
                 money: score.toString(),
-                rank: rank ?? null  // Sıralama bilgisini ekle
+                rank: rank ?? null
             };
         });
     }
 
     private async getPlayerRanksFromRedis(playerIds: number[]): Promise<Map<number, number>> {
-        const totalPlayers = await redisClient.zCard(this.LEADERBOARD_KEY);
+        const totalPlayers = await redisClient.zCard(LEADERBOARD_KEY);
         const rankMap = new Map<number, number>();
 
         for (const playerId of playerIds) {
-            const rank = await redisClient.zRank(this.LEADERBOARD_KEY, playerId.toString());
+            const rank = await redisClient.zRank(LEADERBOARD_KEY, playerId.toString());
             if (rank !== null) {
                 rankMap.set(playerId, totalPlayers - rank);
             }
@@ -246,12 +243,12 @@ class LeaderboardService extends BaseService<'leaderboard'> {
     }
 
     async distributeWeeklyRewards(): Promise<void> {
-        const rewardPool = parseFloat(await redisClient.get('reward_pool') || '0');
+        const rewardPool = parseFloat(await redisClient.get(REWARD_POOL_KEY) || '0');
 
         const topPlayers = await redisClient.zRangeWithScores(
-            this.LEADERBOARD_KEY,
+            LEADERBOARD_KEY,
             0,
-            this.TOP_PLAYERS_COUNT - 1,
+            TOP_PLAYERS_COUNT - 1,
             { REV: true }
         );
 
@@ -277,9 +274,9 @@ class LeaderboardService extends BaseService<'leaderboard'> {
             });
         }
 
-        await redisClient.del('reward_pool');
-        await redisClient.del('leaderboard');
-        console.log('Weekly rewards distributed and leaderboard reset.');
+        await redisClient.del(REWARD_POOL_KEY);
+        await redisClient.del(LEADERBOARD_KEY);
+        leaderboardLogger.info('Weekly rewards distributed and leaderboard reset.');
     }
 }
 

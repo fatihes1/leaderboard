@@ -21,6 +21,7 @@
     "http-status": "^1.5.0",
     "joi": "^17.13.3",
     "logger": "^0.0.1",
+    "node-cron": "^3.0.3",
     "nodemon": "^3.1.7",
     "redis": "^4.7.0",
     "socket.io": "^4.8.0",
@@ -29,7 +30,9 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/logger": "^0.0.5",
     "@types/node": "^22.7.9",
+    "@types/node-cron": "^3.0.11",
     "@types/redis": "^4.0.11",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
     "@typescript-eslint/parser": "^8.11.0",

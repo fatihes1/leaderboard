@@ -24,5 +24,16 @@ class PlayerController extends BaseController {
           this.handleError(res, error);
       }
   }
+
+  update: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const playerId = parseInt(req.params.id);
+            const earnedMoney = parseInt(req.body.money);
+            const player = await this.playerService.updatePlayerMoney(playerId, earnedMoney);
+            res.status(HttpStatus.OK).send(player);
+        } catch (error: any) {
+            this.handleError(res, error);
+        }
+  }
 }
 export default PlayerController;

@@ -25,11 +25,11 @@ export const LeaderboardContext = createContext<ILeaderboardContext>({
 export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => {
     const [data, setData] = useState<IPlayer[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [selectedUserId, setSelectedUserId] = useState<number>(5);
+    const [selectedUserId, setSelectedUserId] = useState<number>(0);
 
     useEffect(() => {
         fetchLeaderboard();
-    }, []);
+    }, [selectedUserId]);
 
     const columns: TableColumn<IPlayer>[] = useMemo(() =>  [
         {
@@ -42,7 +42,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                 const textColorClass = isSelected ? 'text-purple-700 font-bold' : 'text-inherit';
 
                 return (
-                    <div className={`font-press-start text-xs pl-3 ${textColorClass}`}>
+                    <div className={`font-press-start pl-3 ${textColorClass}`}>
                         {row.original.rank}
                     </div>
                 )
@@ -58,7 +58,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                 const isSelected = row.original.id === selectedUserId;
                 const textColorClass = isSelected ? 'text-purple-700 font-semibold' : 'text-inherit';
                 return (
-                    <div className={`flex text-xs pl-3 truncate ${textColorClass}`}>
+                    <div className={`flex pl-3 truncate ${textColorClass}`}>
                         {row.original.name}
                     </div>
                 );
@@ -74,7 +74,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                 const isSelected = row.original.id === selectedUserId;
                 const textColorClass = isSelected ? 'text-purple-700 font-semibold' : 'text-inherit';
                 return (
-                    <div className={`flex items-center text-xs truncate ${textColorClass}`}>
+                    <div className={`flex items-center truncate ${textColorClass}`}>
                         <img src={row.original.country.flag} alt={row.original.country.name} className="w-4 h-4 mr-2 md:w-4 md:h-4 rounded-full object-fit"/>
                         {row.original.country.name}
                     </div>
@@ -91,7 +91,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                 const isSelected = row.original.id === selectedUserId;
                 const textColorClass = isSelected ? 'text-purple-700 font-semibold' : 'text-inherit';
                 return (
-                    <div className={`text-highlight-purple text-xs ${textColorClass}`}>
+                    <div className={`text-highlight-purple  ${textColorClass}`}>
                         {row.original.money}
                     </div>
                 );
@@ -101,7 +101,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
 
 
     const fetchLeaderboard =  () => {
-        fetchLeaderboardRequest().then((response) => {
+        fetchLeaderboardRequest(undefined, Number(selectedUserId)).then((response) => {
             const top100Players = response.data.topPlayers;
             const surroundingPlayers = response.data.surroundingPlayers;
             if (surroundingPlayers.length > 0) {

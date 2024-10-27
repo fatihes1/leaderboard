@@ -50,7 +50,7 @@ function BaseTable<T extends { id: number | string }>({
                                                               headerClassName = 'text-left p-4 text-gray-400 font-normal',
                                                               cellClassName = 'p-4 text-white',
                                                               rowColorClass = 'bg-white dark:bg-[#1c172b]',
-                                                              maxTableHeightClass = 'max-h-[58vh]'
+                                                              maxTableHeightClass = 'max-h-[58vh]',
                                                           }: BaseTableProps<T>): ReactElement {
     const defaultColumnOrder = initialColumnOrder || columns.map(col => col.id);
     const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(defaultColumnOrder);
@@ -101,7 +101,7 @@ function BaseTable<T extends { id: number | string }>({
     };
 
     const tableContent = (
-        <div className={`w-full h-1/3 z-50 p-8 rounded-lg ${className}`}>
+        <div className={`w-full h-1/3 z-50 p-3 rounded-lg ${className}`}>
             <div className="h-full relative">
                 {/* Table wrapper */}
                 <div className={`${maxTableHeightClass} scroll-area overflow-x-auto`}>
@@ -154,10 +154,9 @@ function BaseTable<T extends { id: number | string }>({
                             ))}
                         </tr>
                         </thead>
-                        {/* Scrollable Body */}
                         <tbody>
                         {table.getRowModel().rows.map(row => (
-                            <tr key={row.id} className={rowClassName} data-row-id={row.original.id}>
+                            <tr key={row.id} className={`${rowClassName} z-50`} data-row-id={row.original.id}>
                                 {row.getVisibleCells().map((cell, cellIndex) => (
                                     <td key={cell.id} className={cellClassName} style={{padding: 0}}>
                                         <div

@@ -1,7 +1,7 @@
 import {TableColumn} from "../../components/ui/tables/base-table.tsx";
 import React, {createContext, useEffect, useMemo, useState} from "react";
-import {IGroupedPlayers, IPlayer} from "../../models/leaderboard.ts";
-import {fetchLeaderboardRequest} from "../../requests/leaderboard/leaderboard-requests.ts";
+import {IGroupedPlayers, IPlayer} from "@/models/leaderboard.ts";
+import {fetchLeaderboardRequest} from "@/requests/leaderboard/leaderboard-requests.ts";
 
 
 interface ILeaderboardContext {
@@ -125,13 +125,16 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                 header: 'Ranking',
                 accessorKey: 'rank',
                 size: 50,
-                cell: ({ row }) => (
-                    <div className={`font-press-start pl-3 ${
-                        row.original.id === selectedUserId ? 'text-purple-700 font-bold' : 'text-inherit'
-                    }`}>
-                        {row.original.rank}
-                    </div>
-                )
+                cell: ({ row }) => {
+                    console.log(row.original.id, selectedUserId)
+                    return (
+                        <div className={`font-press-start pl-3 ${
+                            row.original.id === selectedUserId ? 'text-purple-700 font-bold' : 'text-inherit'
+                        }`}>
+                            {row.original.rank}
+                        </div>
+                    )
+                }
             },
             {
                 id: 'name',
@@ -161,7 +164,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                     </div>
                 )
             }
-        ], []);
+        ], [selectedUserId]);
 
     const toggleGroupView = () => {
         setIsGroupView((prev) => !prev);
@@ -172,7 +175,10 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
             const top100Players = response.data.topPlayers;
             const surroundingPlayers = response.data.surroundingPlayers;
             if (surroundingPlayers.length > 0) {
-                top100Players.push(...surroundingPlayers);
+                const uniqueSurroundingPlayers = surroundingPlayers.filter((player: IPlayer) =>
+                    !top100Players.some((topPlayer: IPlayer) => topPlayer.id === player.id)
+                );
+                top100Players.push(...uniqueSurroundingPlayers);
             }
             setData(top100Players)
 

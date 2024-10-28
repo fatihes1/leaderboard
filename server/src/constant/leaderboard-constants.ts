@@ -7,8 +7,11 @@ export const TOP_PLAYERS_REWARD_PERCENTAGES = [
     { rank: 3, percentage: 0.10 }
 ]
 
+
 export const LEADERBOARD_KEY = 'leaderboard';
+export const LEADERBOARD_LOCK_KEY = 'leaderboard_initialization_lock';
 export const REWARD_POOL_KEY = 'rewardPool';
+export const DISTRIBUTE_REWARDS_LOCK_KEY = 'distribute_rewards_lock';
 export const TOP_PLAYERS_COUNT = 100;
 export const SURROUNDING_PLAYERS_COUNT_ABOVE = 3;
 export const SURROUNDING_PLAYERS_COUNT_BELOW = 2;

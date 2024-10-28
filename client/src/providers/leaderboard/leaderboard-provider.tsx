@@ -171,6 +171,7 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
     }
 
     const fetchLeaderboard =  () => {
+        setIsLoading(true)
         fetchLeaderboardRequest(undefined, Number(selectedUserId)).then((response) => {
             const top100Players = response.data.topPlayers;
             const surroundingPlayers = response.data.surroundingPlayers;
@@ -184,6 +185,8 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
 
         }).catch((error) => {
             console.error(error)
+        }).finally(() => {
+            setIsLoading(false)
         })
     }
 

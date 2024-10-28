@@ -12,7 +12,7 @@ const LeaderboardWrapper = () => {
 
     const renderPlayerSubTable = (players: IPlayer[]) => {
         return (
-                <div className={'z-50'}>
+                <div className={'z-40'}>
                     <ReusableTable
                         data={players}
                         columns={groupedColumns}
@@ -42,10 +42,10 @@ const LeaderboardWrapper = () => {
             </div>
             {
                 isGroupView ? (
-                    <div className="relative max-h-[60vh] overflow-y-scroll scroll-area mt-5 z-50 container">
+                    <div className="relative max-h-[60vh] overflow-y-scroll scroll-area mt-5 z-40 container">
                         {groupedData.map((group, index) => (
-                            <div key={`${group.country.name}-${index}`} className="flex flex-col w-full rounded-lg container overflow-hidden z-50">
-                                <div className={'flex flex-row justify-center items-center z-50'}>
+                            <div key={`${group.country.name}-${index}`} className="flex flex-col w-full rounded-lg container overflow-hidden z-40">
+                                <div className={'flex flex-row justify-center items-center z-40'}>
                                     <div className={'flex flex-row justify-center items-center w-full mx-2 h-14 bg-white border border-gray-400 rounded-lg text-xl font-medium dark:bg-[#1c172b] dark:border-purple-600 dark:text-gray-200'}>
                                         <img src={group.country.flag} alt={group.country.name} className="w-4 h-4 mr-2 md:w-6 md:h-6 rounded-full object-fit"/>
                                         {group.country.name}

@@ -19,7 +19,7 @@ export const PlayerFilter = () => {
                 <div className="relative flex items-center">
                     <Search className="absolute left-3 h-4 w-4 text-black dark:text-white " />
                     <Combobox.Input
-                        className="h-10 w-full rounded-lg bg-white dark:bg-[#1c172b] border border-gray-200 dark:border-purple-600 pl-10 pr-4 text-sm text-black dark:text-white placeholder:text-black dark:placeholder:text-white font-medium focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        className="h-10 w-full rounded-lg bg-white dark:bg-[#1c172b] border border-gray-200 dark:border-purple-600 pl-10 pr-4 text-base text-black dark:text-white placeholder:text-black dark:placeholder:text-white font-medium focus:outline-none focus:ring-2 focus:ring-violet-500"
                         placeholder="Search"
                         onChange={(event) => setQuery(event.target.value)}
                         displayValue={(person: IPlayerOption) => person?.name ?? ''}

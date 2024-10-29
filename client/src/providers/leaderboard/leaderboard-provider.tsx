@@ -126,7 +126,6 @@ export const LeaderboardProvider = ({children}: {children: React.ReactNode}) => 
                 accessorKey: 'rank',
                 size: 50,
                 cell: ({ row }) => {
-                    console.log(row.original.id, selectedUserId)
                     return (
                         <div className={`font-press-start pl-3 ${
                             row.original.id === selectedUserId ? 'text-purple-700 font-bold' : 'text-inherit'

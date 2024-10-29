@@ -79,4 +79,5 @@ Example Body:
 - **GET /api/leaderboard** - Get the leaderboard
 - **GET /api/leaderboard?playerId={playerId}** - Get first 100 players and the player with the given playerId with surrounding players
 - **GET /api/leaderboard?playerName={playerName}** - Get suggested players with the given player name
+- **POST /api/leaderboard/distribute** - Static endpoint to distribute the money collected in the prize pool (Normally this should be done by a cron job)
 
